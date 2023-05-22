@@ -37,6 +37,15 @@ jobs:
           cd src
           echo "Building sedge..."
           make compile
+          echo 'Running sedge...'
+          ./sedge deps install >> $HOME/sedge.logs
+          ./sedge generate --logging none -p $HOME /
+          full-node --map-all --no-mev-boost --no-validator --network chiado /
+          -c lighthouse:sigp/lighthouse:latest -e nethermind:nethermindeth/nethermind:master /
+          --el-extra-flag Sync.NonValidatorNode=true --el-extra-flag Sync.DownloadBodiesInFastSync=false /
+          --el-extra-flag Sync.DownloadReceiptsInFastSync=false /
+          --cl-extra-flag checkpoint-sync-url=http://139.144.26.89:4000/ >> $HOME/sedge.logs
+          ./sedge run -p . >> $HOME/sedge.logs
       - name: Install Go
         run: sudo apt install golang-go
       - name: Lint with Ruff
@@ -47,16 +56,5 @@ jobs:
         run: |
           python3 --version
           pytest --version
-      - name: Run Sedge
-        run: |
-          echo "running sedge..."
-          ./sedge deps install >> $HOME/sedge.logs
-          ./sedge generate --logging none -p $HOME /
-          full-node --map-all --no-mev-boost --no-validator --network chiado /
-          -c lighthouse:sigp/lighthouse:latest -e nethermind:nethermindeth/nethermind:master /
-          --el-extra-flag Sync.NonValidatorNode=true --el-extra-flag Sync.DownloadBodiesInFastSync=false /
-          --el-extra-flag Sync.DownloadReceiptsInFastSync=false /
-          --cl-extra-flag checkpoint-sync-url=http://139.144.26.89:4000/ >> $HOME/sedge.logs
-          ./sedge run -p . >> $HOME/sedge.logs
       - name: Run Tests
-        run: pytest -v tests_unit/
+        run: pytest -v
